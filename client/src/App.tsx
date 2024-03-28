@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
+// const successSound = require('./audios/success.mp3');
+// const failureSound = require('./audios/0.mp3');
+// const oneSound = require('./audios/1.mp3');
+// const twoSound = require('./audios/2.mp3');
+// const threeSound = require('./audios/3.mp3');
 
 function App(): JSX.Element {
   const [inputs, setInputs] = useState<string[]>(['', '', '', '']);
@@ -9,6 +14,7 @@ function App(): JSX.Element {
   const [combination, setCombination] = useState<string>('');
   const [combinationGenerated, setCombinationGenerated] = useState<boolean>(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const audioRefs = useRef<(HTMLAudioElement | null)[]>(Array.from({ length: 5 }, () => null));
 
   useEffect(() => {
     const storedNumbers = localStorage.getItem('pastNumbers');
@@ -71,10 +77,27 @@ function App(): JSX.Element {
     setTotalSubmissions(totalSubmissions + 1);
     if (correctDigits === combination.length) {
       setSuccess(true);
+      playSuccessSound();
     } else {
       alert('Incorrect combination!');
     }
     setPastNumbers([...pastNumbers, { number: inputs.join(''), correctDigits }]);
+  };
+
+
+  const playSuccessSound = () => {
+    if (audioRefs.current && audioRefs.current.length > 0) {
+      console.log("Playing sound...");
+      audioRefs.current.forEach(audio => {
+        if (audio) {
+          audio.play()
+            .then(() => console.log("Sound played successfully"))
+            .catch((error: any) => console.error("Error playing sound:", error)); // Explicitly define the type for the error parameter
+        }
+      });
+    } else {
+      console.error("Audio elements not found");
+    }
   };
 
   const resetInputs = () => {
@@ -86,6 +109,11 @@ function App(): JSX.Element {
 
   return (
     <div className="App">
+      {audioRefs.current.map((audio, index) => (
+        <audio key={index} ref={(el) => (audioRefs.current[index] = el)}>
+          <source src={`./audios/${index}.mp3`} type="audio/mpeg" />
+        </audio>
+      ))}
       <div className="container">
         {pastNumbers.length > 0 && (
           <div className="leftPanel">
